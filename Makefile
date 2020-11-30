@@ -10,6 +10,9 @@ PACKER_WINDOWS_FILES = $(exec find packer/windows)
 AWS_REGION ?= us-east-1
 AMZN_LINUX2_AMI ?= $(shell aws ec2 describe-images --region $(AWS_REGION) --owners amazon --filters 'Name=name,Values=amzn2-ami-hvm-2.0.????????-x86_64-gp2' 'Name=state,Values=available' --output json | jq -r '.Images | sort_by(.CreationDate) | last(.[]).ImageId')
 
+AWS_VPC ?= vpc-000000
+AWS_SUBNET ?= subnet-000000
+
 all: packer build
 
 # Remove any built cloudformation templates and packer output
@@ -79,7 +82,7 @@ packer-linux.output: $(PACKER_LINUX_FILES)
 		-v "$(PWD):/src" \
 		--rm \
 		-w /src/packer/linux \
-		hashicorp/packer:$(PACKER_VERSION) build -timestamp-ui -var 'ami=$(AMZN_LINUX2_AMI)' -var 'region=$(AWS_REGION)' \
+		hashicorp/packer:$(PACKER_VERSION) build -timestamp-ui -var 'ami=$(AMZN_LINUX2_AMI)' -var 'region=$(AWS_REGION)' -var 'vpc_id=$(AWS_VPC)' -var 'subnet_id=$(AWS_SUBNET)' \
 			buildkite-ami.json | tee $@
 
 build/windows-ami.txt: packer-windows.output env-AWS_REGION
@@ -99,7 +102,7 @@ packer-windows.output: $(PACKER_WINDOWS_FILES)
 		-v "$(PWD):/src" \
 		--rm \
 		-w /src/packer/windows \
-		hashicorp/packer:$(PACKER_VERSION) build -timestamp-ui -var 'region=$(AWS_REGION)' \
+		hashicorp/packer:$(PACKER_VERSION) build -timestamp-ui -var 'region=$(AWS_REGION)' -var 'vpc_id=$(AWS_VPC)' -var 'subnet_id=$(AWS_SUBNET)' \
 			buildkite-ami.json | tee $@
 
 # -----------------------------------------
