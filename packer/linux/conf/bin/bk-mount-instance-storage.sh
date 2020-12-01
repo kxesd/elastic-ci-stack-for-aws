@@ -51,3 +51,10 @@ elif [[ "${#devices[@]}" -gt 1 ]] ; then
       echo "$logicalname $devicemount    xfs  defaults  0 0" >> /etc/fstab
   fi
 fi
+
+# Move & mount buildkite-agent dir
+mv /var/lib/buildkite-agent $devicemount/buildkite-agent
+mkdir /var/lib/buildkite-agent
+mount --bind /var/lib/buildkite-agent $devicemount/buildkite-agent
+chown 2000:2000 /var/lib/buildkite-agent
+chmod 700 /var/lib/buildkite-agent
